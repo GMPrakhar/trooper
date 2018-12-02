@@ -1,0 +1,153 @@
+<html>
+<head>
+<title>Trooper</title>
+
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+
+<!-- jQuery library -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<!-- Popper JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+
+<!-- Latest compiled JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular-route.js"></script>
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css" integrity="sha384-5sAR7xN1Nv6T6+dT2mhtzEpVJvfS3NScPQTrOxhwjIuvcA67KV2R5Jz6kr4abQsz" crossorigin="anonymous">
+
+
+<script>
+
+
+</script>
+
+<style>
+body
+{
+	background: black;
+	overflow: hidden;
+}
+
+.star
+{
+	position: absolute;
+	width: 5px;
+	height: 5px;
+	background: white;
+	border-radius: 50%;
+	transition: transform 0.4s;
+	transition: opacity 0.4s;
+}
+
+.asteroid
+{
+	position: absolute;
+	width: 10px;
+	height: 10px;
+	background: white;
+	border-radius: 50%;
+	transition: transform 0.4s;
+	transition: opacity 0.4s;
+}
+</style>
+
+</head>
+<body ng-app="trooper" ng-controller="control" >
+	<div class="star" index="{{$index}}" ng-repeat="star in stars track by $index" style="top:{{star.y}}; left:{{star.x}}; transform: scale({{star.scale}}); opacity:{{star.alpha}}">
+	</div>
+	<div class="asteroid" ng-repeat="ast in asteroid" style="top:{{ast.y}}; left:{{ast.y}}; transform: scale({{ast.scale}});"></div>
+</body>
+<script>
+var app = angular.module("trooper", []);
+var center = {x:document.body.clientWidth/2, y:document.body.clientHeight/2};
+var x = Math.random()*center.x;
+var y = Math.random()*center.y, alpha = 1;
+
+app.controller("control", function($scope, $http) {
+	$scope.stars = [];
+	$scope.asteroid = [{x:x, y:y, scale:1}];
+	for(var i = 0; i < 80; i++)
+	{
+		x = Math.random()*document.body.clientWidth;
+		y = Math.random()*document.body.clientHeight;
+		alpha = Math.random();
+		$scope.stars.push({x:x,y:y,alpha:alpha,scale:1});
+	}
+	function scaleStars()
+	{
+		$('.star').each(function()
+		{
+			var curx = parseInt($(this).css('left'));
+			var cury = parseInt($(this).css('top'));
+			curx += (curx-center.x)/100;
+			cury += (cury-center.y)/100;
+			var alpha = (Math.abs(curx-center.x)+Math.abs(cury-center.y))/(center.x+center.y);
+			$(this).css('transform','scale(2)');
+			if(Math.abs(center.x-curx)<100) curx += 0.01;
+			if(Math.abs(center.y-cury)<100) cury += 0.01;
+			var scale = $scope.stars[$(this).attr('index')].scale;
+			scale+=0.01;
+			$scope.stars[$(this).attr('index')] = {x:curx, y:cury, alpha:alpha, scale: scale};
+			$scope.$apply();
+		});
+		//console.log($scope.stars.length);
+		
+		
+	}
+	
+	function cleanScope()
+	{
+		
+		for(var i = 0; i < $scope.stars.length; i++)
+		{
+			if($scope.stars[i].x > center.x*2 || $scope.stars[i].x < 0 || $scope.stars[i].y > center.y*2 || $scope.stars[i].y < 0 || $scope.stars[i].scale > 3.2)
+			{
+				$scope.stars.splice(i,1);
+				i--;
+				$scope.$apply();
+			}
+		}
+		
+		for(var i = 0; i < 80 - $scope.stars.length; i++)
+		{
+			var dx = Math.random();
+			var dy = Math.random();
+			if(dx>0.5) x = Math.random()*200 + center.x;
+			else x =  center.x - Math.random()*200;
+			if(dy>0.5) y = center.y - Math.random()*200 ;
+			else y = Math.random()*200 + center.y;
+			var alpha = Math.random();
+			$scope.stars.push({x:x,y:y,alpha:alpha,scale:1});
+		}
+	}
+	
+	function pushAsteroid()
+	{
+		var ast  = $scope.asteroid[0];
+		var curx = ast.x;
+		var cury = ast.y;
+		curx += (center.x)/10;
+		cury += (center.y)/10;
+		var scale = ast.scale;
+		ast.x = curx;
+		ast.y = cury;
+		ast.scale = scale+1;
+		if(curx < 0 || curx > center.x*2 || cury <0 || cury > center.y*2)
+		{
+			ast.x = Math.random()*center.x*2;
+			ast.y = Math.random()*center.y*2;
+			ast.scale = 1;
+		}
+		$scope.$apply();
+	}
+	
+	setInterval(scaleStars, 20);
+	setInterval(cleanScope, 200);
+	setInterval(pushAsteroid, 20);
+	
+	
+});
+</script>
+</html>
